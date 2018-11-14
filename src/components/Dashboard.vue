@@ -8,7 +8,7 @@
           v-bind:key="map.id"
           class="collection-item">
             <router-link v-bind:to="{ name: 'view-map', params: { id: map.id } }">
-              <div class="chip">{{ map.id }}</div>{{ map.name }}
+              <div class="chip">{{ map.map_id }}</div>{{ map.name }}
             </router-link>
           </li>
         </ul>
@@ -16,6 +16,8 @@
 </template>
 
 <script>
+import db from './firebaseInit'
+
 export default {
   name: 'dashboard',
   data() {
@@ -24,29 +26,23 @@ export default {
     }
   },
   created() {
-    let mapTest = {
-      'id': 1,
-      'name': 'Beach Map',
-      'mods': '',
-      'quantity': '0',
-      'quality': '20%',
-      'loot': []
-    }
-    this.maps.push(mapTest)
-
-    mapTest = {
-      'id': 2,
-      'name': 'Nemesis Beach Map of Nothing',
-      'mods': '20% increased rare enemies\nTest',
-      'quantity': '40%',
-      'quality': '20%',
-      'loot': [{
-        'name': 'Item test 1',
-        'rarity': 'rare'
-      }]
-    }
-
-    this.maps.push(mapTest)
+    db.collection('maps')
+      .orderBy('map_id')
+      .get()
+      .then(querySnapshot => {
+        querySnapshot.forEach(doc => {
+          const data = {
+            'id': doc.id,
+            'map_id': doc.data().map_id,
+            'name': doc.data().name,
+            'mods': doc.data().mods,
+            'quantity': doc.data().quantity,
+            'quality': doc.data().quality,
+            'loot': doc.data().loot
+          }
+          this.maps.push(data)
+        })
+      })
   }
 }
 </script>

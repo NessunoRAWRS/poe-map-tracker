@@ -4,22 +4,26 @@
           <li class="collection-header">
             <h4>{{ name }}</h4>
           </li>
-          <li class="collection-item">ID: {{ id }}</li>
-          <li class="collection-item">Name: {{ name }}</li>
-          <li class="collection-item">Quantity: {{ quantity }}</li>
-          <li class="collection-item">Quality: {{ quality }}</li>
-          <li class="collection-item">Loot: {{ loot }}</li>
+          <li class="collection-item"><div class="chip">Map #</div> {{ map_id }}</li>
+          <li class="collection-item"><div class="chip">Name</div> {{ name }}</li>
+          <li class="collection-item"><div class="chip">Mods</div> {{ mods }}</li>
+          <li class="collection-item"><div class="chip">Quantity</div> {{ quantity }}</li>
+          <li class="collection-item"><div class="chip">Quality</div> {{ quality }}</li>
+          <li class="collection-item"><div class="chip">Loot</div> {{ loot }}</li>
         </ul>
         <router-link to="/" class="btn grey">Back</router-link>
     </div>
 </template>
 
 <script>
+import db from './firebaseInit'
+import firebase from 'firebase'
+
 export default {
   name: 'view-map',
   data() {
     return {
-      id: null,
+      map_id: null,
       name: null,
       mods: null,
       quantity: null,
@@ -28,16 +32,41 @@ export default {
     }
   },
   beforeRouteEnter(to, from, next) {
-    next(vm => {
-      vm.id = to.params.it;
-    })
+    
+    let data = db.collection('maps')
+      .doc(to.params.id)
+      .get()
+      .then(querySnapshot => {
+        next(vm => {
+          vm.id = querySnapshot.id
+          vm.map_id = querySnapshot.data().map_id
+          vm.name = querySnapshot.data().name
+          vm.mods = querySnapshot.data().mods
+          vm.quantity = querySnapshot.data().quantity
+          vm.quality = querySnapshot.data().quality
+          vm.loot = querySnapshot.data().loot
+        })
+      })
   },
   watch: {
     '$route': 'fetchData'
   },
   methods: {
     fetchData() {
-      this.id = this.$route.params.id;
+      db.collection('maps')
+        .where('id', '==', this.$route.params.id)
+        .get()
+        .then(querySnapshot => {
+          querySnapshot.forEach(doc => {
+            this.fb_id = doc.id
+            this.id = doc.data().id
+            this.name = doc.data().name
+            this.mods = doc.data().mods
+            this.quantity = doc.data().quantity
+            this.quality = doc.data().quality
+            this.loot = doc.data().loot
+          })
+        })
     }
   }
 }
